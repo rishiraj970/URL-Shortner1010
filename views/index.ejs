@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#343a40">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .card {
+      border-radius: 12px;
+    }
+    .btn-success {
+      border-radius: 8px;
+    }
+    .table td a {
+      word-break: break-word;
+    }
+    .table th, .table td {
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">🔗 URL Shortener</h2>
+
+        <!-- Input Form -->
+        <form action="/shortUrls" method="POST" class="form-inline justify-content-center mb-4">
+          <input
+            required
+            type="url"
+            name="fullUrl"
+            placeholder="Enter full URL here"
+            class="form-control mr-2 w-50"
+          >
+          <button type="submit" class="btn btn-success">Shorten</button>
+        </form>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Full URL</th>
+                <th scope="col">Short URL</th>
+                <th scope="col">Clicks</th>
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% shortUrls.forEach(shortUrl => { %>
+                <tr>
+                  <td>
+                    <a href="<%= shortUrl.full %>" target="_blank">
+                      <%= shortUrl.full %>
+                    </a>
+                  </td>
+                  <td>
+                    <a href="/<%= shortUrl.short %>" target="_blank">
+                      <%= request.headers.host %>/<%= shortUrl.short %>
+                    </a>
+                  </td>
+                  <td><%= shortUrl.clicks %></td>
+                  <td>
+                    <form action="/shortUrls/<%= shortUrl._id %>/delete" method="POST" style="display:inline;">
+                      <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Are you sure you want to delete this short URL?');">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          alert('Short URL copied to clipboard!');
+        }, function() {
+          alert('Failed to copy!');
+        });
+      } else {
+        // fallback for older browsers
+        var tempInput = document.createElement('input');
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('Short URL copied to clipboard!');
+      }
+    }
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(function(registration) {
+            // Registration successful
+          }, function(err) {
+            // Registration failed
+            console.error('ServiceWorker registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
